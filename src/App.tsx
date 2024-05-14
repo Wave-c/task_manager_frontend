@@ -1,26 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { FC, useContext, useEffect, useState } from 'react';
+import { Context } from '.';
+import { observer } from 'mobx-react-lite';
+import CustomHeader from './components/shared/CustomHeader/CustomHeader.component';
+import AddTasks from './components/shared/AddTasks/AddTasks.component';
+import Task from './components/shared/Task/Task.component';
+import { ITask } from './models/ITask';
 
-function App() {
+const App: FC = () => {
+  const {store} = useContext(Context);
+  
+  useEffect(() =>
+  {
+    if(localStorage.getItem('token'))
+    {
+      store.checkAuth().then(()=>{
+              store.featchTasks();
+      });
+    }
+  },[])
+
+  if(store.isLoading)
+  {
+    return (
+      <div></div>
+    )
+  }
+
+  if(!store.isAuth)
+  {
+    window.location.replace("/auth/sign-in");
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <CustomHeader/>
+      <AddTasks/>
+      {store.tasks.map((task, index) =>
+      {
+        return (
+          <Task id={task.id} title={task.title} description={task.description} deadline={task.deadline} username={task.username}/>
+        )
+      })}
     </div>
   );
 }
 
-export default App;
+export default observer(App);
